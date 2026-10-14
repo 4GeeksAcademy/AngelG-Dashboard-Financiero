@@ -34,7 +34,6 @@ Evidencia:
 1. CORS abierto con wildcard y credenciales habilitadas en backend.
 2. Puerto de debug remoto expuesto (5678) en configuracion Docker.
 3. README en espanol contiene una linea en ingles.
-4. Titulo HTML del frontend es generico (frontend).
 
 Evidencia:
 - [backend/app/main.py](../backend/app/main.py)
@@ -82,7 +81,7 @@ Prioridades de estabilizacion y calidad sobre lo ya implementado (sin agregar nu
 1. Reducir superficie de riesgo de seguridad en CORS y debug remoto.
 2. Reducir deuda de mantenibilidad (duplicacion B2B/B2C y alto acoplamiento en routes.py).
 3. Fortalecer reproducibilidad (versionado de dependencias backend).
-4. Mejorar coherencia documental existente (README.es y metadatos del frontend).
+4. Mejorar coherencia documental existente (README.es).
 
 Evidencia:
 - [backend/app/main.py](../backend/app/main.py)
@@ -111,3 +110,19 @@ Evidencia para validacion:
 1. No se ejecuto la suite de tests en esta fase; por tanto, no se valida aqui el estado runtime.
 2. No fue posible inspeccionar el contenido de [frontend/.env.example](../frontend/.env.example) por restriccion de lectura del entorno.
 3. No fue posible leer el archivo global de instrucciones del entorno (fuera del repositorio) por restriccion de acceso.
+
+## Registro de correcciones de metadatos y accesibilidad
+1. Se reemplazo el titulo generico del documento y se agrego una descripcion que resume el dashboard implementado; se mantuvo `lang="en"`, coherente con el texto visible de la interfaz.
+2. Los titulos de las tarjetas de graficos ahora usan encabezados `h2`, subordinados al `h1` del dashboard. El cambio es global a `CardTitle`; validar otros usos de ese componente al ampliarlo.
+3. Se expone el estado de carga en el landmark principal, los errores como alertas y los estados sin datos como status. Los graficos de Recharts activan explicitamente su capa de accesibilidad, que proporciona superficie SVG con `role="application"` y `tabIndex=0` en la version instalada.
+4. Se agrego una regla de agentes para exigir evidencia al declarar uso de skills. En esta tarea no se encontro el directorio `.agents/skills/`, por lo que no se declara uso ni se crea una skill.
+
+Archivos de evidencia:
+- [frontend/index.html](../frontend/index.html)
+- [frontend/src/App.tsx](../frontend/src/App.tsx)
+- [frontend/src/components/ui/card.tsx](../frontend/src/components/ui/card.tsx)
+- [frontend/src/components/dashboard/income-outcome-chart.tsx](../frontend/src/components/dashboard/income-outcome-chart.tsx)
+- [frontend/src/components/dashboard/profit-percent-chart.tsx](../frontend/src/components/dashboard/profit-percent-chart.tsx)
+- [11-evidencia-de-skills.md](../.agents/rules/11-evidencia-de-skills.md)
+
+Validacion: `npm ci`, `npm run build`, `npm run lint` y `npm test` se ejecutaron en `frontend/`; build, lint y las 5 pruebas existentes pasaron. Build conserva una advertencia de chunk JavaScript >500 kB. `npm ci` informo 13 vulnerabilidades en dependencias (1 low, 5 moderate, 7 high); no se aplico `npm audit fix` para evitar cambios de dependencias fuera del alcance. `git diff --check` paso. No se realizo prueba visual/manual de contraste o lector de pantalla.
