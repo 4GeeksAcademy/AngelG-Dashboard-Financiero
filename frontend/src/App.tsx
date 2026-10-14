@@ -5,8 +5,6 @@ import { IncomeOutcomeChart } from "@/components/dashboard/income-outcome-chart"
 import { ProfitPercentChart } from "@/components/dashboard/profit-percent-chart";
 import {
   type FinancialMovement,
-  type KPIMetrics,
-  type MonthlyDataPoint,
 } from "@/lib/financial-types";
 import { computeKPIs, computeMonthlyData } from "@/lib/financial-utils";
 
@@ -21,16 +19,17 @@ async function fetchFinancialData(): Promise<FinancialMovement[]> {
 }
 
 function App() {
-  const [metrics, setMetrics] = useState<KPIMetrics | null>(null);
-  const [monthlyData, setMonthlyData] = useState<MonthlyDataPoint[]>([]);
+  const [movements, setMovements] = useState<FinancialMovement[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const metrics = movements === null ? null : computeKPIs(movements);
+  const monthlyData = movements === null ? [] : computeMonthlyData(movements);
 
   useEffect(() => {
     fetchFinancialData()
       .then((movements) => {
-        setMetrics(computeKPIs(movements));
-        setMonthlyData(computeMonthlyData(movements));
+        setMovements(movements);
       })
       .catch(() => {
         setError(
