@@ -5,6 +5,65 @@ Registro de skills que influyeron efectivamente en el trabajo de este repositori
 
 ## Evidence records
 
+### Current exercise — static performance audit with `web-perf`
+
+- **Skill consulted:** `web-perf` — [`.agents/skills/web-perf/SKILL.md`](../.agents/skills/web-perf/SKILL.md), installed from `cloudflare/skills` after discovery with `npx skills find` (searches included performance, testing, TypeScript, and forms).
+- **Skill applied to audit:** Yes. Its evidence-led workflow was used for static source/build review and to distinguish bundle evidence from browser performance measurements.
+- **Skill applied to verified modification:** No. No product/runtime change was made from this skill.
+- **Measurement pending:** Browser trace, network inspection, Lighthouse/Core Web Vitals, and a controlled before/after comparison for any proposed bundle change.
+- **Community discovery evidence:** The original exercise ran `npx skills find performance`, `testing`, `typescript`, and `forms` individually. `cloudflare/skills@web-perf` was selected from the performance search because the Vite dashboard had a >500 kB bundle advisory. The recorded evaluation was Gen: Safe, Socket: 0 alerts, Snyk: medium risk. The repository record does not retain names/details for candidates rejected from the other three searches; those results should not be reconstructed from memory.
+- **Purpose / problem addressed:** Review loading/performance risks in the financial dashboard and separate source/build evidence from browser measurements.
+- **Task/phase:** Static performance audit and recommendations, 2026-10-14.
+- **Guidance applied:** Inspected the Vite/React build setup, bundle output, and codebase opportunities; followed the skill's evidence-led approach and did not infer Core Web Vitals from static inspection. The audit did not implement the proposed optimizations.
+- **Files affected:** No product/runtime files were changed by the audit. The skill is present at `.agents/skills/web-perf/SKILL.md`; its installation metadata is in the untracked `skills-lock.json` in the current working tree.
+- **Evidence and limits:** The production build reported a JavaScript chunk of approximately 587.8 kB (175.9 kB gzip) and a Vite advisory for chunks over 500 kB; CSS was 19,167 bytes. Sourcemap mappings attributed approximately 258 kB of generated JS to Recharts sources, not a guaranteed removable amount. No browser trace, network inspection, Lighthouse run, or LCP/INP/CLS measurement was performed. The audit supports a bundle-size observation only, not a claim about user-perceived performance.
+- **Result:** Skill applied to static source/build audit, not to a performance code modification. No sufficiently evidenced optimization was approved; lazy-loading the main charts and changing Vite configuration were not recommended. Further bundle optimization remains pending a browser trace and controlled before/after bundle/network comparison. No commit was created.
+
+### Final delivery checks — 2026-10-14
+
+- **Current verification:** `npm --prefix frontend test` passed (2 files, 9 tests); `npm --prefix frontend run lint` passed; `npm --prefix frontend run build` passed and retained Vite's >500 kB warning (JS 587.76 kB, gzip 175.89 kB).
+- **Backend verification:** The global host interpreter still lacks `pytest`. A temporary venv outside the repo was populated from `backend/requirements.txt`; Python 3.14 passed all 15 tests. Docker also passed all 15 tests with Python 3.13.16/pytest 9.1.1. Both runs emitted one `StarletteDeprecationWarning` about `httpx` with `starlette.testclient`, recommending `httpx2`. No repository dependency files changed.
+- **Manual accessibility:** The user reports that the manual checklist passed; it was not independently repeated in this session. Lighthouse, network trace, and Core Web Vitals remain unmeasured.
+- **Scope:** These checks validate the current frontend build; they do not convert the `web-perf` audit into a code modification or prove a performance improvement.
+
+### Authorized code change and delivery commits — 2026-10-14
+
+- **Vercel modification:** `frontend/src/App.tsx` now stores fetched movements and derives KPI/monthly values during render under `rerender-derived-state-no-effect`. Frontend tests (2 files, 9 tests), lint, and build passed afterward. The bundle size/warning did not improve; no performance claim is made.
+- **Backend:** The temporary venv and Docker runs each passed 15 tests. Both reported the same `StarletteDeprecationWarning` concerning `httpx` and `starlette.testclient`; project dependency files were unchanged.
+- **Manual accessibility:** The user reports the manual checks passed; the agent did not repeat them independently. Browser performance metrics remain unmeasured.
+- **Commit traceability:** `54269f5` contains the Vercel state-derivation hunk; `b79ce24` contains accessibility/localization and tests; `1a022c6` contains community skill files plus `skills-lock.json`; `23cd8a6` adds the internal validation skill. Memory bank is handled in a separate commit.
+
+### Current exercise — `vercel-react-best-practices` static audit
+
+- **Skill consulted:** `vercel-react-best-practices` — [`.agents/skills/vercel-react-best-practices/SKILL.md`](../.agents/skills/vercel-react-best-practices/SKILL.md) and its complete compiled guide, [`.agents/skills/vercel-react-best-practices/AGENTS.md`](../.agents/skills/vercel-react-best-practices/AGENTS.md) (3,810 lines).
+- **Skill applied to audit:** Yes. The rules listed below were checked against the actual React/Vite/Rolldown app and package metadata; Next.js-only guidance was not transferred to this Vite SPA.
+- **Skill applied to verified modification:** Yes. `frontend/src/App.tsx` now stores the API movements and derives KPI/monthly data during render, following `rerender-derived-state-no-effect`. This simplifies the source of truth; no performance improvement is claimed or measured. The `computeKPIs` algorithm was not changed.
+- **Measurement pending:** Controlled before/after bundle analysis and browser measurements before recommending a bundle or render optimization.
+- **Task/phase:** Frontend static performance audit and final compliance review, 2026-10-14.
+- **Guidance applied to audit:** Evaluated rule 2.1 (`bundle-barrel-imports`) against the Vite/Rolldown build and Recharts 3.8.1 package metadata (`module: es6/index.js`, `sideEffects: false`); evaluated 2.4 (`bundle-dynamic-imports`) against the initially visible charts and the explicit scope not to defer them; evaluated 5.1 (`rerender-derived-state-no-effect`) against `frontend/src/App.tsx`; and considered 7.6 (`js-combine-iterations`) for `computeKPIs` but did not recommend or implement it because the proposal was explicitly not approved and no material benefit was demonstrated. No Next.js APIs were proposed for this Vite SPA.
+- **Evidence and decision:** Named Recharts imports are tree-shaken by the production build, so the barrel import alone does not establish a defect. The app does not demonstrate duplicate requests that would justify SWR deduplication. The state refactor is a maintainability change, not a measured optimization. The primary charts remain eager by design.
+- **Files affected/result:** `frontend/src/App.tsx` contains this refactor alongside earlier accessibility/localization changes. Separate commits will require staging the specific refactor hunk independently. After the change, frontend tests passed (2 files, 9 tests), lint passed, and build passed with Vite's >500 kB advisory unchanged. No stage or commit was made.
+
+### Current exercise — create and exercise `financial-dashboard-validation`
+
+- **Skill actually used:** `financial-dashboard-validation` — [`.agents/skills/financial-dashboard-validation/SKILL.md`](../.agents/skills/financial-dashboard-validation/SKILL.md).
+- **Purpose / problem addressed:** Prevent inconsistent or speculative validation of dashboard changes by giving agents the repository's real data path, financial calculation/chart touchpoints, contract sources, actual commands, evidence expectations, and approval boundaries in one reusable procedure. Evidence includes the UI fetch in `frontend/src/App.tsx`, calculation helpers in `frontend/src/lib/financial-utils.ts`, Recharts components and accessible tables, and differing frontend/backend test availability.
+- **Task/phase:** Internal skill design and simulated validation exercise, 2026-10-14.
+- **Guidance applied:** Read repository memory/rules and the existing dashboard/community skills; inspected npm scripts, frontend/backend tests, Vite proxy, data types, calculation and chart components, backend Pydantic routes, README runtime instructions, git state/history. Simulated validation against the existing dashboard without changing runtime code or financial data.
+- **Files affected:** New `.agents/skills/financial-dashboard-validation/SKILL.md` and this evidence entry. No product/runtime, API, dependency, financial-data, or test files were changed by this exercise.
+- **Recognition evidence:** `cd /workspaces/AngelG-Dashboard-Financiero && npx skills list --json` listed `financial-dashboard-validation` at `.agents/skills/financial-dashboard-validation` with project scope and GitHub Copilot agent. Running the same command from `frontend/` returned an empty list, so CLI discovery is root-relative; the repository README independently specifies `.agents/skills/<name>/SKILL.md`.
+- **Verification evidence:** `npm --prefix frontend test` passed (2 files, 9 tests); `npm --prefix frontend run lint` passed; `npm --prefix frontend run build` passed, with Vite's >500 kB JS chunk advisory (587.76 kB, 175.89 kB gzip). `python -m pytest backend/tests` could not run because `pytest` is not installed (`No module named pytest`); dependencies were not installed. The dry validation also confirmed the source path `/api/metrics` → `computeKPIs`/`computeMonthlyData` → KPI cards and two Recharts charts, with chart data tables and an explicit no-data state. Browser/runtime checks were not performed. CLI `list`, build, and diff/status checks verify structural/use guidance only, not automatic agent invocation.
+- **Result:** Skill created, recognized by the project CLI from repository root, loaded and applied to a safe validation simulation. Frontend tests/lint/build passed; backend test execution remains blocked by missing environment dependency. No commit was created.
+
+### Current exercise — accessibility and Spanish localization of the financial dashboard
+
+- **Skills actually used:** `accessibility` — [`.agents/skills/accessibility/SKILL.md`](../.agents/skills/accessibility/SKILL.md); `financial-dashboard` — [`.agents/skills/financial-dashboard/SKILL.md`](../.agents/skills/financial-dashboard/SKILL.md).
+- **Guidance applied:** The accessibility skill informed native semantic headings/tables, text alternatives for charts, keyboard-visible focus, skip navigation, loading announcements, Spanish document language, and reduced-motion support. The dashboard skill informed preservation of financial calculations and chart behavior, explicit USD formatting, scoped frontend changes, and honest reporting of validation limits.
+- **Task/phase:** Approved implementation of dashboard accessibility and Spanish UI localization, 2026-10-14.
+- **Files affected:** `frontend/index.html`, `frontend/src/App.tsx`, dashboard header/KPI/chart components, `frontend/src/components/ui/card.tsx`, `frontend/src/index.css`, `frontend/src/lib/financial-utils.ts`, its tests, and new `frontend/src/components/dashboard/dashboard-accessibility.test.tsx`. No backend or financial calculation logic was changed.
+- **Verification evidence:** `npm ci --prefix frontend` succeeded. `npm test --prefix frontend` passed (2 files, 9 tests); `npm run lint --prefix frontend` passed; `npm run build --prefix frontend` passed. Vite reported its existing >500 kB chunk advisory. npm install reported 13 dependency vulnerabilities (1 low, 5 moderate, 7 high). The formatter expectations were checked against actual Node `Intl` output (`USD 1,235`; `15.6`). No browser-based keyboard, zoom, screen-reader, or rendered contrast test was performed.
+- **Result:** Dashboard UI copy and document language are Spanish; both charts have expandable native data tables; semantic structure, loading/status communication, skip link, visible focus, and reduced motion support were added. This is not a claim of full WCAG conformance; manual/browser accessibility validation remains pending.
+
 ### Current exercise — compliance audit against specification-driven dashboard brief
 
 - **Skill:** `financial-dashboard` — [`.agents/skills/financial-dashboard/SKILL.md`](../.agents/skills/financial-dashboard/SKILL.md)
