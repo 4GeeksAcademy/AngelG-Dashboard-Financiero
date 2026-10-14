@@ -89,13 +89,13 @@ describe("computeMonthlyData", () => {
 
     expect(monthlyData).toHaveLength(2);
     expect(monthlyData[0]).toEqual({
-      month: "Dec 2025",
+      month: "dic 2025",
       income: 1000,
       outcome: 200,
       profitPercent: 80,
     });
     expect(monthlyData[1]).toEqual({
-      month: "Jan 2026",
+      month: "ene 2026",
       income: 300,
       outcome: 0,
       profitPercent: 100,
@@ -105,10 +105,14 @@ describe("computeMonthlyData", () => {
 
 describe("formatters", () => {
   it("formats currency without decimals", () => {
-    expect(formatCurrency(1234.56)).toBe("$1,235");
+    expect(formatCurrency(1234.56)).toBe("USD 1,235");
   });
 
   it("formats percent with one decimal", () => {
-    expect(formatPercent(15.555)).toBe("15.6%");
+    expect(formatPercent(15.555)).toBe("15.6 %");
+  });
+
+  it("formats currencies with an explicit USD code and Spanish separators", () => {
+    expect(formatCurrency(1234.56)).toBe("USD 1,235");
   });
 });

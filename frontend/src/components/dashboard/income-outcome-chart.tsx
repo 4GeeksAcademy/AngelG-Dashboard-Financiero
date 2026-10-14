@@ -30,6 +30,39 @@ interface CustomTooltipProps {
   label?: string
 }
 
+function IncomeOutcomeDataTable({ data }: { data: MonthlyDataPoint[] }) {
+  return (
+    <details className="mt-4 text-sm">
+      <summary className="cursor-pointer rounded-sm text-primary underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-4">
+        Ver datos mensuales en una tabla
+      </summary>
+      <div className="mt-3 overflow-x-auto">
+        <table className="w-full border-collapse text-left">
+          <caption className="sr-only">
+            Ingresos y gastos mensuales representados en el gráfico
+          </caption>
+          <thead>
+            <tr className="border-b border-border">
+              <th scope="col" className="px-2 py-2 font-semibold">Mes</th>
+              <th scope="col" className="px-2 py-2 font-semibold">Ingresos</th>
+              <th scope="col" className="px-2 py-2 font-semibold">Gastos</th>
+            </tr>
+          </thead>
+          <tbody>
+            {data.map((point) => (
+              <tr key={point.month} className="border-b border-border/60">
+                <th scope="row" className="px-2 py-2 font-medium">{point.month}</th>
+                <td className="px-2 py-2">{formatCurrency(point.income)}</td>
+                <td className="px-2 py-2">{formatCurrency(point.outcome)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </details>
+  )
+}
+
 function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
   if (!active || !payload?.length) return null
   return (
@@ -38,7 +71,7 @@ function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
       {payload.map((entry) => (
         <div key={entry.name} className="flex items-center gap-2 py-0.5">
           <span className="inline-block h-2 w-2 rounded-full" style={{ backgroundColor: entry.color }} />
-          <span className="text-muted-foreground capitalize">{entry.name}:</span>
+          <span className="text-muted-foreground">{entry.name === 'income' ? 'Ingresos:' : 'Gastos:'}</span>
           <span className="font-medium text-foreground ml-auto pl-4">{formatCurrency(entry.value)}</span>
         </div>
       ))}
@@ -50,32 +83,29 @@ export function IncomeOutcomeChart({ data, loading }: IncomeOutcomeChartProps) {
   if (loading) {
     return (
       <Card className="border-border/60">
-        <CardHeader className="pb-4">
+        <CardHeader aria-hidden="true" className="pb-4">
           <Skeleton className="h-5 w-52" />
           <Skeleton className="h-3 w-64 mt-1" />
         </CardHeader>
-        <CardContent>
+        <CardContent aria-hidden="true">
           <Skeleton className="h-[280px] w-full rounded-lg" />
         </CardContent>
       </Card>
     )
   }
 
-  const hasData = data.some((d) => d.income > 0 || d.outcome > 0)
+  const hasData = data.length > 0
 
   return (
     <Card className="border-border/60">
       <CardHeader className="pb-4">
-        <CardTitle className="text-base font-semibold">Income vs. Outcome</CardTitle>
-        <CardDescription>Monthly revenue and expenditure evolution</CardDescription>
+        <CardTitle className="text-base font-semibold">Ingresos y gastos</CardTitle>
+        <CardDescription>Evolución mensual de ingresos y gastos</CardDescription>
       </CardHeader>
       <CardContent>
         {!hasData ? (
-              <div
-                role="status"
-                className="flex h-[280px] items-center justify-center text-muted-foreground text-sm"
-              >
-            No data available to display
+              <div className="flex h-[280px] items-center justify-center text-muted-foreground text-sm">
+            No hay datos disponibles para mostrar
           </div>
         ) : (
           <ResponsiveContainer width="100%" height={280}>
@@ -95,13 +125,13 @@ export function IncomeOutcomeChart({ data, loading }: IncomeOutcomeChartProps) {
                 tick={{ fontSize: 11, fill: 'var(--color-muted-foreground)' }}
                 axisLine={false}
                 tickLine={false}
-                tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`}
+                tickFormatter={(v) => `$${(v / 1000).toLocaleString('es-MX', { maximumFractionDigits: 0 })} mil`}
                 width={48}
               />
               <Tooltip content={<CustomTooltip />} />
               <Legend
                 formatter={(value) => (
-                  <span className="text-xs text-muted-foreground capitalize">{value}</span>
+                  <span className="text-xs text-muted-foreground">{value === 'income' ? 'Ingresos' : 'Gastos'}</span>
                 )}
               />
               <Line
@@ -125,6 +155,7 @@ export function IncomeOutcomeChart({ data, loading }: IncomeOutcomeChartProps) {
             </LineChart>
           </ResponsiveContainer>
         )}
+        {hasData ? <IncomeOutcomeDataTable data={data} /> : null}
       </CardContent>
     </Card>
   )

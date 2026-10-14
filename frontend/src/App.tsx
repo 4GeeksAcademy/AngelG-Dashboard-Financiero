@@ -33,7 +33,7 @@ function App() {
       })
       .catch(() => {
         setError(
-          "No se pudo cargar la informacion financiera. Revisa la API de backend.",
+          "No se pudo cargar la información financiera. Revisa la API del servidor.",
         );
       })
       .finally(() => {
@@ -42,37 +42,53 @@ function App() {
   }, []);
 
   return (
-    <main
-      aria-busy={loading}
-      className="dark min-h-screen bg-background text-foreground"
-    >
-      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        <div className="flex flex-col gap-8">
-          <DashboardHeader period="2024 - Full Year" />
+    <>
+      <p role="status" className="sr-only">
+        {loading ? "Cargando los datos financieros…" : ""}
+      </p>
+      <a className="skip-link" href="#main-content">
+        Saltar al contenido principal
+      </a>
+      <main
+        id="main-content"
+        tabIndex={-1}
+        aria-busy={loading}
+        className="dark min-h-screen bg-background text-foreground"
+      >
+        <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+          <div className="flex flex-col gap-8">
+            <DashboardHeader period="2024 - Año completo" />
 
-          {error ? (
-            <div
-              role="alert"
-              className="rounded-lg border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive-foreground"
+              {error ? (
+                <div
+                  role="alert"
+                  className="rounded-lg border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive-foreground"
+                >
+                  {error}
+                </div>
+              ) : null}
+
+            <section aria-labelledby="kpi-heading">
+              <h2 id="kpi-heading" className="sr-only">
+                Indicadores clave
+              </h2>
+              <KPIRow metrics={metrics} loading={loading} />
+            </section>
+
+            <section
+              aria-labelledby="charts-heading"
+              className="grid grid-cols-1 gap-4 xl:grid-cols-2"
             >
-              {error}
-            </div>
-          ) : null}
-
-          <section aria-label="Key performance indicators">
-            <KPIRow metrics={metrics} loading={loading} />
-          </section>
-
-          <section
-            aria-label="Financial charts"
-            className="grid grid-cols-1 gap-4 xl:grid-cols-2"
-          >
-            <IncomeOutcomeChart data={monthlyData} loading={loading} />
-            <ProfitPercentChart data={monthlyData} loading={loading} />
-          </section>
+              <h2 id="charts-heading" className="sr-only xl:col-span-2">
+                Gráficos financieros
+              </h2>
+              <IncomeOutcomeChart data={monthlyData} loading={loading} />
+              <ProfitPercentChart data={monthlyData} loading={loading} />
+            </section>
+          </div>
         </div>
-      </div>
-    </main>
+      </main>
+    </>
   );
 }
 
